@@ -38,7 +38,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ MongoDB Connection (clean + retry logic)
+// ✅ MongoDB Connection (clean, no deprecated options)
 const connectToMongoDB = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
