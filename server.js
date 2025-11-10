@@ -21,12 +21,12 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Dynamic CORS setup for production and local dev
+// ✅ Dynamic CORS setup (for both local + Render)
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
-  process.env.CLIENT_URL, // e.g. your Render frontend URL
-].filter(Boolean); // removes undefined entries
+  process.env.CLIENT_URL, // e.g. your deployed frontend URL on Render
+].filter(Boolean); // Removes undefined or empty entries
 
 app.use(
   cors({
@@ -38,14 +38,19 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ MongoDB Connection (clean + modern)
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ Connected to MongoDB successfully"))
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err.message);
-    process.exit(1);
-  });
+// ✅ MongoDB Connection (clean + retry logic)
+const connectToMongoDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log("✅ Connected to MongoDB successfully");
+  } catch (error) {
+    console.error("❌ MongoDB connection error:", error.message);
+    // Retry after 5 seconds (useful for Render cold starts)
+    setTimeout(connectToMongoDB, 5000);
+  }
+};
+
+connectToMongoDB();
 
 // ✅ API Routes
 app.use("/api/auth", authRoutes);
