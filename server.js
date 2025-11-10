@@ -25,7 +25,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
-  process.env.CLIENT_URL, // e.g. your deployed frontend URL on Render
+  process.env.CLIENT_URL, // your deployed frontend URL (Render/Netlify)
 ].filter(Boolean); // Removes undefined or empty entries
 
 app.use(
@@ -38,7 +38,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ MongoDB Connection (clean, no deprecated options)
+// ✅ MongoDB Connection (clean + retry logic)
 const connectToMongoDB = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
@@ -65,7 +65,7 @@ setupChatRoutes(app);
 
 // ✅ Health check
 app.get("/api/health", (req, res) => {
-  res.json({ message: "✅ Server is running!" });
+  res.json({ message: "✅ Server is running fine!" });
 });
 
 // ✅ Root route
