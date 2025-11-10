@@ -1,3 +1,4 @@
+// server.js
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -5,28 +6,28 @@ import cors from "cors";
 import http from "http";
 import { Server } from "socket.io";
 
-// Routes
+// ✅ Load environment variables
+dotenv.config();
+
+// ✅ Import Routes
 import authRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import hrRoutes from "./routes/hrRoutes.js";
 import jobRoutes from "./routes/createjobRoutes.js";
-import ApplyRoutes from "./routes/applyRoutes.js";
+import applyRoutes from "./routes/applyRoutes.js";
 import pdfRoutes from "./routes/pdfRoutes.js";
 
-// Chat setup
+// ✅ Chat setup
 import { setupChat, setupChatRoutes } from "./chat.js";
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
 
-// ✅ Dynamic CORS setup (for both local + Render)
+// ✅ CORS setup (works for localhost + Render)
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
-  process.env.CLIENT_URL, // your deployed frontend URL (Render/Netlify)
-].filter(Boolean); // Removes undefined or empty entries
+  process.env.CLIENT_URL, // Your deployed frontend URL on Render
+].filter(Boolean); // removes undefined or empty values
 
 app.use(
   cors({
@@ -38,14 +39,14 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ MongoDB Connection (clean + retry logic)
+// ✅ MongoDB Connection (no deprecated options)
 const connectToMongoDB = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("✅ Connected to MongoDB successfully");
   } catch (error) {
     console.error("❌ MongoDB connection error:", error.message);
-    // Retry after 5 seconds (useful for Render cold starts)
+    // Retry connection after 5 seconds (useful on Render cold starts)
     setTimeout(connectToMongoDB, 5000);
   }
 };
@@ -57,20 +58,20 @@ app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/hr", hrRoutes);
 app.use("/api/job", jobRoutes);
-app.use("/api/applications", ApplyRoutes);
+app.use("/api/applications", applyRoutes);
 app.use("/api/pdfs", pdfRoutes);
 
 // ✅ Chat Routes
 setupChatRoutes(app);
 
-// ✅ Health check
+// ✅ Health check route
 app.get("/api/health", (req, res) => {
-  res.json({ message: "✅ Server is running fine!" });
+  res.json({ message: "✅ Server is running smoothly!" });
 });
 
 // ✅ Root route
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to the Job Portal Backend API!" });
+  res.json({ message: "Welcome to the Job Portal Backend API 🚀" });
 });
 
 // ✅ Global Error Handler
@@ -79,7 +80,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Something went wrong on the server!" });
 });
 
-// ✅ HTTP Server + Socket.IO setup
+// ✅ HTTP + Socket.IO setup
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -90,7 +91,7 @@ const io = new Server(server, {
   },
 });
 
-// ✅ Chat Socket setup
+// ✅ Initialize Chat Socket
 setupChat(io);
 
 // ✅ Start Server
