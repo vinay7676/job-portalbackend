@@ -21,12 +21,12 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Dynamic CORS setup for production
+// ✅ Dynamic CORS setup for production and local dev
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
   process.env.CLIENT_URL, // e.g. your Render frontend URL
-];
+].filter(Boolean); // removes undefined entries
 
 app.use(
   cors({
@@ -38,12 +38,9 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ MongoDB Connection
+// ✅ MongoDB Connection (clean + modern)
 mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ Connected to MongoDB successfully"))
   .catch((err) => {
     console.error("❌ MongoDB connection error:", err.message);
@@ -58,22 +55,22 @@ app.use("/api/job", jobRoutes);
 app.use("/api/applications", ApplyRoutes);
 app.use("/api/pdfs", pdfRoutes);
 
-// Chat routes
+// ✅ Chat Routes
 setupChatRoutes(app);
 
-// Health check
+// ✅ Health check
 app.get("/api/health", (req, res) => {
   res.json({ message: "✅ Server is running!" });
 });
 
-// Root route
+// ✅ Root route
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to the Job Portal Backend API!" });
 });
 
-// Error handler
+// ✅ Global Error Handler
 app.use((err, req, res, next) => {
-  console.error("🔥 Error:", err.stack);
+  console.error("🔥 Server Error:", err.stack);
   res.status(500).json({ error: "Something went wrong on the server!" });
 });
 
@@ -88,10 +85,10 @@ const io = new Server(server, {
   },
 });
 
-// Chat socket setup
+// ✅ Chat Socket setup
 setupChat(io);
 
-// ✅ Start server
+// ✅ Start Server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
